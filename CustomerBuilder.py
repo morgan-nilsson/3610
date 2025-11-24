@@ -60,7 +60,7 @@ class ICustomerBuilder(ABC):
     def build(self) -> Customer:
         pass
 
-class WebAppBuilder(ICustomerBuilder):
+class WebBuilder(ICustomerBuilder):
     def __init__(self) -> None:
         super().__init__()
 
@@ -82,7 +82,7 @@ class WebAppBuilder(ICustomerBuilder):
         return self.customer
 
 # doesn't need middleName, secondaryEmail and secondaryMobileNumber
-class MobileAppBuilder(ICustomerBuilder):
+class MobileBuilder(ICustomerBuilder):
     def __init__(self) -> None:
         super().__init__()
 
@@ -96,3 +96,22 @@ class MobileAppBuilder(ICustomerBuilder):
         if not self.customer.primary_phone_number:
             raise ValueError("Primary phone number is required")
         return self.customer
+
+def create_mobile_customer(firstname, lastname, primary_email, phone_number) -> Customer:
+    builder = (MobileBuilder()
+        .firstName(firstname)
+        .lastName(lastname)
+        .primaryEmail(primary_email)
+        .primaryPhoneNumber(phone_number))
+    return builder.build()
+
+def create_web_customer(firstname, lastname, middle_name, primary_email, second_email, phone_number, second_phone_number) -> Customer:
+    builder = (WebBuilder()
+        .firstName(firstname)
+        .lastName(lastname)
+        .middleName(middle_name)
+        .primaryEmail(primary_email)
+        .secondaryEmail(second_email)
+        .primaryPhoneNumber(phone_number)
+        .secondaryPhoneNumber(second_phone_number))
+    return builder.build()
