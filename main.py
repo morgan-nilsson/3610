@@ -1,59 +1,54 @@
-# Let’s imagine that we need to develop an App for the HR system designed for automation of salary processing.
-# 
-# However, in the HR system we have different ways of calculating salaries:
-# 
-#     Hourly employees: Paid based on hours worked.
-# 
-#     Salaried employees: Paid a fixed monthly amount.
-# 
-#     Contractors: Paid based on project deliverables.
-# 
-# At the same time, there could be different payment methods:
-# 
-#     bank transfer,
-# 
-#     cheque,
-# 
-#     digital wallet.
-# 
-# Without a flexible approach, you would end up writing repetitive code for each combination of employee type and payment method. This would make your system hard to maintain and scale.
-# 
-# Tasks:
-# 
-#     Implement concrete classes for specific implementations (for 3 Payment Methods)
-# 
-#     Use a Factory Method to build different concrete implementators (available Payment Methods stored as an attribute within a Factory Method class).
-# 
-#     Create refined abstraction classes that extend the employee's abstraction. Such class will delegate ProcessPayment() operation to the appropriate implementation based on runtime configurations
-# 
-#     Create required Payment Methods via a Factory Method (might be stored within an App class as a AvalPaymentMethods property)
-# 
-#     Create refined abstractions and link them with concrete implementations (salaried employee -> bank transfer, hourly employee -> cheque, contractor ->digital wallet)
-# 
-#     Launch the App to make payments
+from stockService import StockService
+from stockObserverUI import StockObserverUI
+from stockObserverNotify import StockObserverNotify
+from stockObserverStats import StockObserverStats
+import random
 
-from employee import SalariedEmployee, HourlyEmployee, Contractor
-from payment import PaymentProcessorFactory
-from app import App
+stockService = StockService()
 
-def main():
-    available_payment_methods = ["bank_transfer", "cheque", "digital_wallet"]
-    app = App(available_payment_methods)
+# shows real time changes
+observerUI = StockObserverUI()
+stockService.attach(observerUI)
 
-    bank_transfer_processor = PaymentProcessorFactory.get_payment_processor("bank_transfer")
-    cheque_processor = PaymentProcessorFactory.get_payment_processor("cheque")
-    digital_wallet_processor = PaymentProcessorFactory.get_payment_processor("digital_wallet")
+# sends notifications when the conditions are met
+def ChipsHits20(stock, price):
+    return stock == "Chips" and price >= 20
+# guaranteed to happen the very first turn every time
+def MAndMsLessThan10005(stock, price):
+    return stock == "MAndM" and price <= 10005
+observerNotifications = StockObserverNotify([ChipsHits20, MAndMsLessThan10005])
+stockService.attach(observerNotifications)
 
-    # Create employees with different payment methods
-    hourly_employee = HourlyEmployee("Alice", hourly_rate=20, hours_worked=80, payment_processor=cheque_processor)
-    salaried_employee = SalariedEmployee("Bob", monthly_salary=3000, payment_processor=bank_transfer_processor)
-    contractor = Contractor("Charlie", project_fee=5000, payment_processor=digital_wallet_processor)
+# gather stats over the lifetime
+observerStats = StockObserverStats()
+stockService.attach(observerStats)
+    
+# initial state of the inventory
+state = {}
+state["SourPatchKids"] = 50
+state["MAndM"] = 10000
+state["Chips"] = 10
+# this will count as an update
+stockService.setState(state)
 
-    app.add_employee(hourly_employee)
-    app.add_employee(salaried_employee)
-    app.add_employee(contractor)
+# name and possible change values
+stocks = ["SourPatchKids", "MAndM", "Chips"]
+changes = [10, -10, +5]
 
-    app.run()
+# amount of changes to the inventory
+num_of_turns = 2
 
-if __name__ == "__main__":
-    main()
+# simulate the inventory moving N number of turns
+# you might not always get an notification worthy state if so just run it again
+for i in range(num_of_turns):
+    stock = random.choice(stocks)
+    newState = stockService.getState()
+    newState[stock] += random.choice(changes)
+    stockService.setState(newState)
+
+# use the stats module to get max and min inventory for each item
+for stock in stockService.getState().keys():
+    print()
+    print(stock)
+    print("Max inventory", observerStats.getMaxPrice(stock))
+    print("Min inventory", observerStats.getMinPrice(stock))
